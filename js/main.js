@@ -1,5 +1,50 @@
+var drawn = [];
+var stage = null;
+var fps = 30;
+
+// loaded automatically on page load
+update_canvas_size = function() {
+  var canvas_container = document.getElementById("canvas_container");
+  var canvas = document.getElementById("canvas");
+  canvas.height = canvas_container.offsetHeight;
+  canvas.width  = canvas_container.offsetWidth;
+
+  // Make it visually fill the positioned parent
+  canvas.style.width  ='100%';
+  canvas.style.height ='100%';
+
+  // ...then set the internal size to match
+  canvas.width  = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+}
+
+tick = function() {
+  var canvas = document.getElementById("canvas");
+
+  stage.update();
+
+  console.log("tick");
+  setTimeout(tick, 1000/fps);
+}
+
+scroll_stage_left = function(event) {
+  stage.x = stage.x + 100;
+  var stage_position = document.getElementById("stage_position");
+  stage_position.innerHTML = "X: " + stage.x;
+  stage.update();
+}
+
+scroll_stage_right = function(event) {
+  stage.x = stage.x - 100;
+  var stage_position = document.getElementById("stage_position");
+  stage_position.innerHTML = "X: " + stage.x;
+  stage.update();
+}
+
 var preload = new createjs.PreloadJS();
 preload.onFileLoad = handleFileComplete;
+
+var current_image = null;
 
 var planet_cute_tiles = [
   "img/planet_cute/Brown Block.png",
@@ -60,12 +105,51 @@ var planet_cute_tiles = [
 ];
 
 function setup() {
+  update_canvas_size();
+
+  var canvas = document.getElementById('canvas');
+  stage = new createjs.Stage(canvas);
+  stage.mouseEnabled = true;
+  console.log(stage);
+  stage.onMouseDown = _addImageToStage;
+
   for(var i = 0; i < planet_cute_tiles.length; i++) {
     preload.loadFile(planet_cute_tiles[i]);
   }
+
+  setTimeout(tick, 1000/fps);
+
+}
+
+function _addImageToStage(event) {
+  console.log(event);
+  var selImage = new createjs.Bitmap(current_image);
+console.log(selImage);
+  selImage.x = (parseInt(event.stageX / selImage.image.width) * selImage.image.width);
+  selImage.y = (parseInt(event.stageY / selImage.image.height) * selImage.image.height)/2;
+
+
+  drawn.push(selImage);
+  stage.addChild(selImage);
+  stage.update();
+}
+
+function _addImageToSideBar(img) {
+  var side_panel = document.getElementById('img_side_panel');
+  side_panel.appendChild(img);
+  img.onclick = function(event) {
+    if ( current_image )
+      current_image.className = "";
+
+    current_image = event.target;
+    current_image.className = "selected";
+
+  };
 }
 
 function handleFileComplete(event) {
-  console.log("Loaded File", event);
-  document.getElementById('side_panel').appendChild(event.result);
+  var side_panel = document.getElementById('img_side_panel');
+
+  _addImageToSideBar(event.result);
+
 }

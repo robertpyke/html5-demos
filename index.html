@@ -15,7 +15,16 @@
     <link rel="stylesheet" type="text/css" href="css/main.css" />
   </head>
   <body onload="setup();">
-    <div id="side_panel"></div>
-    <div id="map"></div>
+    <div id="container">
+      <div id="img_side_panel" class="side_panel left"></div>
+      <div id="canvas_container">
+        <canvas id="canvas"></canvas>
+      </div>
+      <div id="control_side_panel" class="side_panel right">
+        <button onclick="scroll_stage_left();">&larr;</button>
+        <button onclick="scroll_stage_right();">&rarr;</button>
+        <p id="stage_position">X: 0</p>
+      </div>
+    </div>
   </body>
 </html>
