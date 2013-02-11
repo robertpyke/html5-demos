@@ -126,7 +126,7 @@ function _addImageToStage(event) {
   var selImage = new createjs.Bitmap(current_image);
 console.log(selImage);
   selImage.x = (parseInt(event.stageX / selImage.image.width) * selImage.image.width);
-  selImage.y = (parseInt(event.stageY / selImage.image.height) * selImage.image.height)/2;
+  selImage.y = (parseInt(event.stageY / ( selImage.image.height / 4 )) * ( selImage.image.height / 4 ));
 
 
   drawn.push(selImage);
