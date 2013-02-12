@@ -1,6 +1,8 @@
 var drawn = [];
 var stage = null;
-var fps = 30;
+var fps = 10;
+
+var current_bit_map = null;
 
 // loaded automatically on page load
 update_canvas_size = function() {
@@ -18,12 +20,34 @@ update_canvas_size = function() {
   canvas.height = canvas.offsetHeight;
 }
 
+_delete_children_at = function(x, y, except) {
+  for (var i = 0; i < stage.children.length; i++) {
+    var child = stage.children[i];
+    if(child != except && child.x == x && child.y == y) {
+      stage.removeChild(child);
+    }
+  }
+}
+
 tick = function() {
   var canvas = document.getElementById("canvas");
 
-  stage.update();
+  if (current_bit_map && stage.mouseInBounds) {
+    trans = stage.globalToLocal(stage.mouseX, stage.mouseY);
+    trans_stage_x = trans.x;
+    trans_stage_y = trans.y;
 
-  console.log("tick");
+    new_x = (parseInt(trans_stage_x / current_bit_map.image.width) * current_bit_map.image.width);
+    new_y = (parseInt(trans_stage_y / ( current_bit_map.image.height / 4 )) * ( current_bit_map.image.height / 4 ));
+
+    current_bit_map.x = new_x;
+    current_bit_map.y = new_y;
+
+    console.log("STAGE", stage.mouseX, stage.mouseY, "TRANS", stage.globalToLocal(stage.mouseX, stage.mouseY));
+
+    stage.update();
+  }
+
   setTimeout(tick, 1000/fps);
 }
 
@@ -121,16 +145,22 @@ function setup() {
 
 }
 
+// Stamp the current_bit_map onto the stage
 function _addImageToStage(event) {
-  console.log(event);
-  var selImage = new createjs.Bitmap(current_image);
-console.log(selImage);
-  selImage.x = (parseInt(event.stageX / selImage.image.width) * selImage.image.width);
-  selImage.y = (parseInt(event.stageY / ( selImage.image.height / 4 )) * ( selImage.image.height / 4 ));
+  var image = current_bit_map.clone();
+  image.alpha = 1;
 
 
-  drawn.push(selImage);
-  stage.addChild(selImage);
+  trans = stage.globalToLocal(event.stageX, event.stageY);
+  trans_stage_x = trans.x;
+  trans_stage_y = trans.y;
+
+  image.x = (parseInt(trans_stage_x / current_bit_map.image.width) * current_bit_map.image.width);
+  image.y = (parseInt(trans_stage_y / ( current_bit_map.image.height / 4 )) * ( current_bit_map.image.height / 4 ));
+
+  _delete_children_at(image.x, image.y, current_bit_map);
+
+  stage.addChild(image);
   stage.update();
 }
 
@@ -141,8 +171,16 @@ function _addImageToSideBar(img) {
     if ( current_image )
       current_image.className = "";
 
+      // Remove the current bit map
+      stage.removeChild(current_bit_map);
+
     current_image = event.target;
     current_image.className = "selected";
+    current_bit_map = new createjs.Bitmap(current_image);
+    current_bit_map.alpha = 0.5;
+
+    stage.addChild(current_bit_map);
+    stage.update();
 
   };
 }
